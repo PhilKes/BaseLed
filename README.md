@@ -4,7 +4,7 @@ ATTINY-85 driven RGB LED for Bottle Lamps
 # Hardware
 <img src="./doc/schematic.PNG" width="600">
 
-* Arduino Nano/Digispark ATTINY-85 Board
+* Digispark ATTINY-85 Board
 * WS2812b single LED Strip (+ 1kOhm Resistor for Data Pin)
 * Tactile Button (+ 10kOhm Pulldown Resistor)
 * TP4056 Li-Ion Battery Charger

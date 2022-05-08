@@ -1,27 +1,33 @@
-#include <FastLED.h>
-#include <EEPROM.h>
+#include <Adafruit_NeoPixel.h>
+#include "EEPROM.h"
 
-#define LED_PIN     7
-#define BTN_PIN     3
+#define LED_PIN     PB4
+#define BTN_PIN     PB3
 
 #define NUM_LEDS    1
-#define BRIGHTNESS 30
+#define BRIGHTNESS 20
 
 #define MAX_MODE    9 // Highest mode number + 1
 #define RGB_WHEEL_MODE 0
-#define RGB_PRESET_MODE 1
-#define RGB_WHEEL_FRAMETIME 100
+#define RGB_SAVED_MODE 1
+
+#define RGB_WHEEL_FRAMETIME 1
+#define RGB_WHEEL_FRAME_STEP 10
 
 #define BUTTON_HIGH_COUNTER_THRESHOLD 20
 
+#define MAX_HUE 65535
 
-CRGB leds[NUM_LEDS];
+//CRGB leds[NUM_LEDS];
+
+Adafruit_NeoPixel pixels = Adafruit_NeoPixel(NUM_LEDS, LED_PIN, NEO_GRB + NEO_KHZ800);
+
 int buttonState = 0;         // variable for reading the pushbutton status
 int buttonStateBefore = 0;
  
-int mode = 0;
-int frame = 0;
-int maxFrame = 360;
+int mode = RGB_WHEEL_MODE;
+uint16_t frame = 0;
+uint16_t maxFrame = MAX_HUE;
 
 boolean animationStopped = false;
 
@@ -32,9 +38,12 @@ char buff[50];
 void setup() 
 {
   pinMode(BTN_PIN, INPUT);
-  FastLED.addLeds<WS2812, LED_PIN, GRB>(leds, NUM_LEDS);
-  FastLED.setBrightness(BRIGHTNESS);
-  Serial.begin(9600);
+  //FastLED.addLeds<WS2812, LED_PIN, GRB>(leds, NUM_LEDS);
+  //FastLED.setBrightness(BRIGHTNESS);
+ // Serial.begin(9600);
+  pixels.begin();
+  pixels.setBrightness(255); // set accordingly
+  pixels.show(); // Initialize all pixels to 'off'
 }
 
 
@@ -44,8 +53,8 @@ void loop()
   buttonState = digitalRead(BTN_PIN);
   if(buttonState == HIGH){
      buttonHighCounter++;
-    sprintf(buff, "ButtonCounter %d", buttonHighCounter);
-    Serial.println(buff);
+   // sprintf(buff, "ButtonCounter %d", buttonHighCounter);
+    //Serial.println(buff);
   }
   // check if the button was pressed before and was now released
   if (buttonStateBefore == HIGH && buttonState == LOW) 
@@ -54,24 +63,27 @@ void loop()
       if(buttonHighCounter >= BUTTON_HIGH_COUNTER_THRESHOLD)
       {
         // If RGB Wheel Mode is active and animation has been stopped
-        // Pressing the button for ~3 Seconds saves the current Color permanently for RGB_PRESET_MODE
+        // Pressing the button for ~3 Seconds saves the current Color permanently for RGB_SAVED_MODEESET_MODE
         if(mode == RGB_WHEEL_MODE && animationStopped)
         {
-          sprintf(buff, "Writing to EEPROM R:%d G:%d B:%d", leds[0].red, leds[0].green, leds[0].blue);
-          Serial.println(buff);
+          uint32_t currentColor = pixels.getPixelColor(0);
+          uint8_t r = currentColor >> 16;
+          uint8_t g = currentColor >> 8;
+          uint8_t b = currentColor;
+          //sprintf(buff, "Writing to EEPROM R:%d G:%d B:%d", r, g, b);
+         // Serial.println(buff);
           // Save current Color to EEPROM 
-           EEPROM.write(1, leds[0].red);
-           EEPROM.write(2, leds[0].green);
-           EEPROM.write(3, leds[0].blue);
+           EEPROM.write(1, r);
+           EEPROM.write(2, g);
+           EEPROM.write(3, b);
         }
       }
       else
       {
-
-        // If RGB Wheel Mode is active only stop the Wheel
+        // If RGB Wheel Mode is active only stop the Wheel, do not change mode
         if(mode == RGB_WHEEL_MODE && !animationStopped)
         {
-          Serial.println("animation Stopped");
+         // Serial.println("animation Stopped");
           animationStopped = true;  
         }
         else
@@ -83,7 +95,7 @@ void loop()
           {
             // Load Frame values for animations
             case RGB_WHEEL_MODE:
-              maxFrame=360;
+              maxFrame=MAX_HUE;
               break;  
           }
         }
@@ -97,48 +109,51 @@ void loop()
       // Color Wheel
       if(animationStopped)
         break;
-      leds[0] = getRGBColorFromHSV(frame,1.0,1.0);
-      frame = (frame+1) % maxFrame;
+     // leds[0] = getRGBColorFromHSV(frame,1.0,1.0);
+      pixels.setPixelColor(0, pixels.ColorHSV(frame,255,255));
+      frame = (frame+RGB_WHEEL_FRAME_STEP) % maxFrame;
       delay(RGB_WHEEL_FRAMETIME); 
       break;
-   case RGB_PRESET_MODE:
+   case RGB_SAVED_MODE:
       if(frame == 0){
         // Loading saved Color to EEPROM 
-          leds[0]= CRGB(EEPROM.read(1),EEPROM.read(2),EEPROM.read(3));
+          pixels.setPixelColor(0, pixels.Color(EEPROM.read(1),EEPROM.read(2),EEPROM.read(3)));
           frame = 1;
       }
       break;
     case 2:
       // RED
-      leds[0] = CRGB(255, 0, 0);
+      //leds[0] = CRGB(255, 0, 0);
+      pixels.setPixelColor(0, pixels.Color(255, 0, 0));
       break; 
     case 3:
       // GREEN
-      leds[0] = CRGB(0, 255, 0);
+      pixels.setPixelColor(0, pixels.Color(0, 255, 0));
       break; 
     case 4:
       // BLUE
-      leds[0] = CRGB(0, 0, 255);
+      pixels.setPixelColor(0, pixels.Color(0, 0, 255));
       break; 
    case 5:
       // YELLOW
-      leds[0] = CRGB(255, 255, 0);
+      pixels.setPixelColor(0, pixels.Color(255, 255, 0));
       break; 
    case 6:
       // VIOLET
-      leds[0] = CRGB(255, 0, 255);
+      pixels.setPixelColor(0, pixels.Color(255, 0, 255));
       break; 
    case 7:
       // CYAN
-      leds[0] = CRGB(0, 255, 255);
+      pixels.setPixelColor(0, pixels.Color(0, 255, 255));
       break; 
    case 8:
       // WHITE
-      leds[0] = CRGB(255, 255, 255);
+      pixels.setPixelColor(0, pixels.Color(255, 255, 255));
       break; 
 
   }
-  FastLED.show();
+ // FastLED.show();
+  pixels.show();
   buttonStateBefore = buttonState;
   delay(10); 
 }
@@ -148,7 +163,8 @@ void loop()
 //  s is saturation value, double between 0 and 1
 //  v is value, double between 0 and 1
 //http://splinter.com.au/blog/?p=29
-CRGB getRGBColorFromHSV(int h, double s, double v) 
+/*
+uint32_t getRGBColorFromHSV(int h, double s, double v) 
 {
   //this is the algorithm to convert from RGB to HSV
   double r=0; 
@@ -204,5 +220,5 @@ CRGB getRGBColorFromHSV(int h, double s, double v)
   //sprintf(buff, "%d %d %d", red, green, blue);
  // Serial.println(buff);
   
-  return CRGB(red,green,blue);
-}
+  return pixels.Color(red,green,blue);
+}*/
