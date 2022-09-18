@@ -22,11 +22,11 @@ import kotlin.experimental.and
 
 class AudioCaptureService : Service() {
 
-    private lateinit var mediaProjectionManager: MediaProjectionManager
-    private var mediaProjection: MediaProjection? = null
+//    private lateinit var mediaProjectionManager: MediaProjectionManager
+//    private var mediaProjection: MediaProjection? = null
 
     private lateinit var audioCaptureThread: Thread
-    private var audioRecord: AudioRecord? = null
+//    private var audioRecord: AudioRecord? = null
 
     override fun onCreate() {
         super.onCreate()
@@ -38,8 +38,8 @@ class AudioCaptureService : Service() {
 
         // use applicationContext to avoid memory leak on Android 10.
         // see: https://partnerissuetracker.corp.google.com/issues/139732252
-        mediaProjectionManager =
-            applicationContext.getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
+/*        mediaProjectionManager =
+            applicationContext.getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManage*/r
     }
 
     private fun createNotificationChannel() {

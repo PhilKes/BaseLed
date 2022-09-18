@@ -12,10 +12,13 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import ir.imn.audiovisualizer.visualizer.AudioVisualizer
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var mediaProjectionManager: MediaProjectionManager
+
+    private val audioVisualizer: AudioVisualizer = AudioVisualizer()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -41,7 +44,8 @@ class MainActivity : AppCompatActivity() {
         if (!isRecordAudioPermissionGranted()) {
             requestRecordAudioPermission()
         } else {
-            startMediaProjectionRequest()
+            audioVisualizer.link()
+//            startMediaProjectionRequest()
         }
     }
 

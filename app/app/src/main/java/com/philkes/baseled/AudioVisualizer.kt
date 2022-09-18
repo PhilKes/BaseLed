@@ -15,7 +15,7 @@ import kotlin.math.log10
 import kotlin.math.max
 
 
-class AudioVisualizer(context: Context, attrs: AttributeSet) {
+class AudioVisualizer {
 
     private val smoothingFactor = 0.2f
 

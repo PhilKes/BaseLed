@@ -18,3 +18,9 @@ ATTINY-85 driven RGB LED for Bottle Lamps
 # 3D Case
 <img src="./doc/3dcase.PNG" width="600">
 <img src="./doc/3dcase_open.PNG" width="600">
+
+# TODO
+
+* What if current MASTER is turned off? -> Send message MASTER_SIGNOFF ?
+* Enable Wifi Rest Endpoints to interact from PC
+* Use WebSocket for Music Stream Mode?
