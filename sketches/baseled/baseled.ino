@@ -14,6 +14,8 @@
 #include "RGBControl.h"
 #include <ESP8266WiFi.h>
 
+#include <ArduinoOTA.h>
+
 void initWifi() {
   // Set Wifi mode to be able to use local WiFi Connection + ESPNow
   WiFi.mode(WIFI_AP_STA);
@@ -47,6 +49,8 @@ void setup() {
   if (iAmMaster) {
     setupRestServer();
   }
+  ArduinoOTA.begin();
+
 }
 
 void loop() {
@@ -61,4 +65,5 @@ void loop() {
     updateRGB(currentAction, currentColor);
     actionChanged = false;
   }
+  ArduinoOTA.handle();
 }

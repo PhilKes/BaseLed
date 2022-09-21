@@ -29,13 +29,20 @@ void onPost() {
 
 void onGetAction() {
 #if DEBUG
-  Serial.print("POST / called");
+  Serial.print("GET / called");
 #endif
   restServer.send(200, "text/json", "{ \"currentAction\": " + String(currentAction) + ", \"currentColor\": 0x" + String(currentColor, 16) + "}");
 }
 
+void onHead() {
+#if DEBUG
+  Serial.print("HEAD / called");
+#endif
+  restServer.send(200, "text/plain", "");
+}
 void setupRestServer() {
   restServer.on(F("/"), HTTP_POST, onPost);
+  restServer.on(F("/"), HTTP_HEAD, onHead);
   restServer.on(F("/action"), HTTP_GET, onGetAction);
   restServer.begin();
 }
