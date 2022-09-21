@@ -81,6 +81,10 @@ dependencies {
     implementation 'com.github.kittinunf.fuel:fuel:2.3.1'
     implementation 'com.github.kittinunf.fuel:fuel-coroutines:2.3.1'
     implementation 'com.github.kittinunf.fuel:fuel-android:2.3.1'
+
+    implementation "com.google.accompanist:accompanist-pager:0.25.0" // Pager
+    implementation "com.google.accompanist:accompanist-pager-indicators:0.25.0" // Pager Indicators
+
 }
 
 kapt {

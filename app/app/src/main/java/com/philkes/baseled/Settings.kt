@@ -20,8 +20,17 @@ class Settings(val context: Context) {
             return ips.split(",")
         }
         set(value) {
-            val edit = sharedPreferences.edit()
-            edit.putString(context.getString(R.string.key_node_ips), value.joinToString { "," })
+            sharedPreferences.edit()
+                .putString(context.getString(R.string.key_node_ips), value.joinToString { "," })
+                .apply()
+        }
+    var debug: Boolean
+        get() {
+            return sharedPreferences.getBoolean(context.getString(R.string.key_debug), true)
+        }
+        set(value) {
+            sharedPreferences.edit()
+                .putBoolean(context.getString(R.string.key_debug), value)
                 .apply()
         }
 }

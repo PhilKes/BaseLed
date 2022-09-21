@@ -15,11 +15,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.lifecycleScope
-import com.philkes.baseled.main.MainActivity
+import com.philkes.baseled.ui.MainActivity
 import com.philkes.baseled.service.EspRestClient
 import com.philkes.baseled.ui.theme.BaseLedTheme
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
