@@ -2,8 +2,8 @@ package com.philkes.baseled.ui
 
 import android.annotation.SuppressLint
 import android.os.Bundle
+import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.*
@@ -11,22 +11,33 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.lifecycleScope
+import com.github.kittinunf.fuel.Fuel
 import com.google.accompanist.pager.*
 import com.philkes.baseled.R
+import com.philkes.baseled.service.EspNowAction
+import com.philkes.baseled.service.EspRestClient
 import com.philkes.baseled.ui.tabs.TabItem
 import com.philkes.baseled.ui.theme.BaseLedTheme
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @AndroidEntryPoint
-class MainActivity : AppCompatActivity() {
+class MainActivity : ComponentActivity() {
+
+    @Inject
+    lateinit var espRestClient: EspRestClient
+
+    lateinit var masterNodeIp: String
 
     @OptIn(ExperimentalPagerApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        masterNodeIp = intent.extras!!.getString(getString(R.string.intent_key_master_node))!!
         setContent {
             BaseLedTheme(darkTheme = true) {
                 MainScreen()
@@ -38,7 +49,7 @@ class MainActivity : AppCompatActivity() {
     @Composable
     @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
     fun MainScreen() {
-        val tabs = listOf(TabItem.Rgb, TabItem.Animation, TabItem.Music)
+        val tabs = listOf(TabItem.Rgb(::onAction), TabItem.Animation, TabItem.Music)
         val pagerState = rememberPagerState()
         Scaffold(
             topBar = { },
@@ -47,6 +58,17 @@ class MainActivity : AppCompatActivity() {
                 Tabs(tabs = tabs, pagerState = pagerState)
                 TabsContent(tabs = tabs, pagerState = pagerState)
             }
+        }
+    }
+
+    var lastEspNowJob: Job? = null
+
+    fun onAction(action: EspNowAction, payload: String) {
+        if(lastEspNowJob != null && lastEspNowJob!!.isActive){
+            lastEspNowJob!!.cancel()
+        }
+        lastEspNowJob = lifecycleScope.launch(Dispatchers.IO) {
+            espRestClient.sendAction(masterNodeIp, action, payload)
         }
     }
 
@@ -92,7 +114,7 @@ class MainActivity : AppCompatActivity() {
     @OptIn(ExperimentalPagerApi::class)
     @Composable
     fun TabsContent(tabs: List<TabItem>, pagerState: PagerState) {
-        HorizontalPager(state = pagerState, count = tabs.size) { page ->
+        HorizontalPager(state = pagerState, count = tabs.size, userScrollEnabled = false) { page ->
             tabs[page].screen()
         }
     }

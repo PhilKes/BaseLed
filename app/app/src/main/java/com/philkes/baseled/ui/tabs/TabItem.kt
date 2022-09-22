@@ -2,13 +2,14 @@ package com.philkes.baseled.ui.tabs
 
 import androidx.compose.runtime.Composable
 import com.philkes.baseled.R
+import com.philkes.baseled.service.EspNowAction
 
 typealias ComposableFun = @Composable () -> Unit
 
 sealed class TabItem(var icon: Int?, var title: String, var screen: ComposableFun) {
-    object Rgb : TabItem(null,
+    class Rgb(onAction: (action: EspNowAction, rgbHex: String) -> Unit) : TabItem(null,
         "RGB",
-        { RgbTab() })
+        { RgbTab(onAction) })
 
     object Animation : TabItem(
        null,
