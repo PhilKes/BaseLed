@@ -42,7 +42,8 @@ void initWifi() {
 
 void setup() {
   initRGB();
-  showRGB(0xEBAB34);
+  loadColorAndAction();
+  updateRGB(currentAction, currentColor);
 #if DEBUG
   Serial.begin(57600);
 #endif
@@ -60,6 +61,7 @@ void loop() {
     webSocket.loop();
     if (actionChanged) {
       broadcast(ACTION, currentAction, currentColor);
+      saveColorAndAction();
     }
     delay(10);
   }
