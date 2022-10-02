@@ -13,9 +13,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.lifecycleScope
-import com.github.kittinunf.fuel.Fuel
 import com.google.accompanist.pager.*
-import com.philkes.baseled.R
+import com.philkes.baseled.Settings
 import com.philkes.baseled.service.EspNowAction
 import com.philkes.baseled.service.EspRestClient
 import com.philkes.baseled.ui.tabs.TabItem
@@ -32,12 +31,19 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var espRestClient: EspRestClient
 
+    @Inject
+    lateinit var settings: Settings
+
     lateinit var masterNodeIp: String
+
+    lateinit var currentAction: EspNowAction
+    lateinit var currentColor: String
 
     @OptIn(ExperimentalPagerApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        masterNodeIp = intent.extras!!.getString(getString(R.string.intent_key_master_node))!!
+        masterNodeIp = settings.lastMasterIp
+        espRestClient.setOnActionReceived(::onActionReceived)
         setContent {
             BaseLedTheme(darkTheme = true) {
                 MainScreen()
@@ -45,32 +51,47 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    @OptIn(ExperimentalPagerApi::class)
+    private var pagerState: PagerState? = null
+
     @ExperimentalPagerApi
     @Composable
     @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
     fun MainScreen() {
-        val tabs = listOf(TabItem.Rgb(::onAction), TabItem.Animation, TabItem.Music)
-        val pagerState = rememberPagerState()
+        val tabs = listOf(TabItem.Rgb(currentColor,::onSendAction), TabItem.Animation, TabItem.Music)
+        pagerState = rememberPagerState(currentAction.actionId)
         Scaffold(
             topBar = { },
         ) { padding ->
             Column(modifier = Modifier.padding(padding)) {
-                Tabs(tabs = tabs, pagerState = pagerState)
-                TabsContent(tabs = tabs, pagerState = pagerState)
+                Tabs(tabs = tabs, pagerState = pagerState!!)
+                TabsContent(tabs = tabs, pagerState = pagerState!!)
             }
         }
     }
 
     var lastEspNowJob: Job? = null
 
-    fun onAction(action: EspNowAction, payload: String) {
-        if(lastEspNowJob != null && lastEspNowJob!!.isActive){
+    fun onSendAction(action: EspNowAction, payload: String) {
+        if (lastEspNowJob != null && lastEspNowJob!!.isActive) {
             lastEspNowJob!!.cancel()
         }
         lastEspNowJob = lifecycleScope.launch(Dispatchers.IO) {
-            espRestClient.sendAction(masterNodeIp, action, payload)
+            espRestClient.sendAction(action, payload)
         }
     }
+
+    @OptIn(ExperimentalPagerApi::class)
+    fun onActionReceived(action: EspNowAction, payload: String) {
+        currentAction = action
+        currentColor = payload
+        if (pagerState != null) {
+            lifecycleScope.launch {
+                pagerState!!.animateScrollToPage(currentAction.actionId)
+            }
+        }
+    }
+
 
     @OptIn(ExperimentalPagerApi::class)
     @Preview(showBackground = true)

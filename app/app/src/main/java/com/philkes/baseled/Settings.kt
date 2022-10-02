@@ -26,11 +26,21 @@ class Settings(val context: Context) {
         }
     var debug: Boolean
         get() {
-            return sharedPreferences.getBoolean(context.getString(R.string.key_debug), true)
+            return sharedPreferences.getBoolean(context.getString(R.string.key_debug), false)
         }
         set(value) {
             sharedPreferences.edit()
                 .putBoolean(context.getString(R.string.key_debug), value)
+                .apply()
+        }
+
+    var lastMasterIp: String
+        get() {
+            return sharedPreferences.getString(context.getString(R.string.key_last_master_ip), null) ?: nodeIps[0]
+        }
+        set(value) {
+            sharedPreferences.edit()
+                .putString(context.getString(R.string.key_last_master_ip), value)
                 .apply()
         }
 }

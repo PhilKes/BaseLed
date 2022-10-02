@@ -6,18 +6,22 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.github.skydoves.colorpicker.compose.ColorEnvelope
-import com.github.skydoves.colorpicker.compose.HsvColorPicker
-import com.github.skydoves.colorpicker.compose.rememberColorPickerController
+import com.godaddy.android.colorpicker.HsvColor
+import com.godaddy.android.colorpicker.harmony.ColorHarmonyMode
+import com.godaddy.android.colorpicker.harmony.CustomColorPicker
+import com.godaddy.android.colorpicker.harmony.HarmonyColorPicker
+import com.philkes.baseled.Util
 import com.philkes.baseled.service.EspNowAction
 import com.philkes.baseled.ui.theme.BaseLedTheme
 
 @Composable
-fun RgbTab(onAction: (action: EspNowAction, rgbHex: String) -> Unit) {
-    val controller = rememberColorPickerController()
+fun RgbTab(
+    initialColor: String, sendAction: (action: EspNowAction, rgbHex: String) -> Unit
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -25,14 +29,15 @@ fun RgbTab(onAction: (action: EspNowAction, rgbHex: String) -> Unit) {
             .wrapContentSize(Alignment.Center)
     ) {
 
-        HsvColorPicker(
+        CustomColorPicker(
+            harmonyMode = ColorHarmonyMode.NONE,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(450.dp)
                 .padding(10.dp),
-            controller = controller,
-            onColorChanged = { colorEnvelope: ColorEnvelope ->
-                onAction.invoke(EspNowAction.RGB, "0x${Integer.toHexString(colorEnvelope.color.toArgb()).substring(2)}")
+            color = Color(initialColor.toInt(16)).copy(alpha=1.0f),
+            onColorChanged = { color: HsvColor ->
+                sendAction.invoke(EspNowAction.RGB, Util.intToHexStr(color.toColor().toArgb()))
             }
         )
     }
@@ -42,6 +47,6 @@ fun RgbTab(onAction: (action: EspNowAction, rgbHex: String) -> Unit) {
 @Composable
 fun RgbTabPreview() {
     BaseLedTheme(darkTheme = true) {
-        RgbTab { _, _ -> }
+        RgbTab("FFFFFF") { _, _ -> }
     }
 }

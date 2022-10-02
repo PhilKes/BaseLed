@@ -16,10 +16,10 @@ void showRGB(uint32_t color) {
   pixels.show();
 }
 
-void updateRGB(int action,uint32_t color) {
+void updateRGB(int action, uint32_t color) {
   switch (action) {
     case 0:
-      showRGB(0x00FF00);
+      showRGB(color);
       break;
     case 1:
       showRGB(0xFF0000);
@@ -28,7 +28,7 @@ void updateRGB(int action,uint32_t color) {
       showRGB(0x0000FF);
       break;
     case 3:
-      showRGB(color);
+      showRGB(0x00FF00);
       break;
     default:
       showRGB(0xFFFFFF);

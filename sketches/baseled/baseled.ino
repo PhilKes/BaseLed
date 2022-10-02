@@ -9,12 +9,14 @@
   copies or substantial portions of the Software.
 *********/
 #include "globals.h"
-#include "RestServer.h"
+#include "WebSocket.h"
 #include "EspNow.h"
 #include "RGBControl.h"
 #include <ESP8266WiFi.h>
 
 #include <ArduinoOTA.h>
+
+#define OTA_PASSWORD "esp8266ota"
 
 void initWifi() {
   // Set Wifi mode to be able to use local WiFi Connection + ESPNow
@@ -47,19 +49,19 @@ void setup() {
   initWifi();
   initEspNow();
   if (iAmMaster) {
-    setupRestServer();
+    setupWebSocket();
   }
+  ArduinoOTA.setPassword(OTA_PASSWORD);
   ArduinoOTA.begin();
-
 }
 
 void loop() {
   if (iAmMaster) {
-    restServer.handleClient();
+    webSocket.loop();
     if (actionChanged) {
       broadcast(ACTION, currentAction, currentColor);
     }
-    delay(100);
+    delay(10);
   }
   if (actionChanged) {
     updateRGB(currentAction, currentColor);

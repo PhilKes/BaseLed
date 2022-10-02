@@ -1,9 +1,11 @@
 package com.philkes.baseled
 
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Text
@@ -27,6 +29,9 @@ class FindMasterNodeActivity : ComponentActivity() {
     @Inject
     lateinit var espRestClient: EspRestClient
 
+    @Inject
+    lateinit var settings: Settings
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,6 +42,7 @@ class FindMasterNodeActivity : ComponentActivity() {
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.S)
     override fun onStart() {
         super.onStart()
         lifecycleScope.launch {
@@ -44,11 +50,9 @@ class FindMasterNodeActivity : ComponentActivity() {
             if (foundMasterNode == null) {
                 TODO("SHOW DIALOG THAT MASTER COULD NOT BE FOUND")
             } else {
-                val intent = Intent(this@FindMasterNodeActivity, MainActivity::class.java).apply {
-                    putExtra(getString(R.string.intent_key_master_node), foundMasterNode)
-                }
+                settings.lastMasterIp = foundMasterNode
+                val intent = Intent(this@FindMasterNodeActivity, MainActivity::class.java)
                 startActivity(intent)
-
             }
         }
     }

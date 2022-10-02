@@ -7,16 +7,17 @@ import com.philkes.baseled.service.EspNowAction
 typealias ComposableFun = @Composable () -> Unit
 
 sealed class TabItem(var icon: Int?, var title: String, var screen: ComposableFun) {
-    class Rgb(onAction: (action: EspNowAction, rgbHex: String) -> Unit) : TabItem(null,
-        "RGB",
-        { RgbTab(onAction) })
+    class Rgb(initialColor: String, onAction: (action: EspNowAction, rgbHex: String) -> Unit) :
+        TabItem(null,
+            "RGB",
+            { RgbTab(initialColor, onAction) })
 
     object Animation : TabItem(
-       null,
+        null,
         "Animation",
         { AnimationTab() })
 
-    object Music: TabItem(
+    object Music : TabItem(
         null,
         "Music",
         { MusicTab() })
