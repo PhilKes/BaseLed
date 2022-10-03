@@ -5,7 +5,7 @@
 #define DEBUG 1
 
 extern bool actionChanged;
-extern int currentAction;
+extern uint8_t currentAction;
 extern uint32_t currentColor;
 
 extern bool receivedMaster;
@@ -13,5 +13,8 @@ extern bool iAmMaster;
 
 extern const char *ssid;
 extern const char *password;
+
+extern void saveColorAndAction();
+extern void loadColorAndAction();
 
 #endif

@@ -9,12 +9,13 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.WebSocket
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.TimeUnit
 
 class EspRestClient(private val settings: Settings) {
     private val TAG = "EspRestClient";
     private val WEBSOCKET_PORT = 81
 
-    private val client = OkHttpClient()
+    private val client = OkHttpClient.Builder().connectTimeout(4, TimeUnit.SECONDS).build()
     private lateinit var ws: WebSocket
     private lateinit var listener: EspWebSocketListener
 
@@ -30,6 +31,7 @@ class EspRestClient(private val settings: Settings) {
     @RequiresApi(Build.VERSION_CODES.S)
     suspend fun searchMasterNodeIp(): String? {
         if (settings.debug) {
+            tryConnectToWebSocket("ip")
             return "master-node-ip"
         }
         for (ip in settings.nodeIps.sortedBy { it.compareTo(settings.lastMasterIp) }) {

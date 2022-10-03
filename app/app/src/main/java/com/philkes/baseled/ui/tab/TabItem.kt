@@ -1,7 +1,6 @@
-package com.philkes.baseled.ui.tabs
+package com.philkes.baseled.ui.tab
 
 import androidx.compose.runtime.Composable
-import com.philkes.baseled.R
 import com.philkes.baseled.service.EspNowAction
 
 typealias ComposableFun = @Composable () -> Unit

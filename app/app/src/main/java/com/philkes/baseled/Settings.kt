@@ -14,19 +14,19 @@ class Settings(val context: Context) {
     var nodeIps: List<String>
         get() {
             var ips = sharedPreferences.getString(context.getString(R.string.key_node_ips), null)
-            if (ips == null)
+            if (ips == null || ips.isEmpty())
                 ips = DEFAULT_IPS
             // Encode Boards name + id in one String
-            return ips.split(",")
+          return ips.split(",")
         }
         set(value) {
             sharedPreferences.edit()
-                .putString(context.getString(R.string.key_node_ips), value.joinToString { "," })
+                .putString(context.getString(R.string.key_node_ips),  java.lang.String.join(",", value))
                 .apply()
         }
     var debug: Boolean
         get() {
-            return sharedPreferences.getBoolean(context.getString(R.string.key_debug), false)
+            return sharedPreferences.getBoolean(context.getString(R.string.key_debug), true)
         }
         set(value) {
             sharedPreferences.edit()

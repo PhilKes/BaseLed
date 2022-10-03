@@ -79,7 +79,9 @@ void broadcast(int actionType, int action, uint32_t payload) {
 }
 
 void setupAsSlave() {
+  #if DEBUG
   Serial.println("Received MASTER, init me as SLAVE");
+  #endif
   //esp_now_set_self_role(ESP_NOW_ROLE_SLAVE);
 }
 

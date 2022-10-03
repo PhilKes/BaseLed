@@ -2,11 +2,12 @@ package com.philkes.baseled.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val Orange50 = Color(0xFFFFF8E1)
+val Orange50 = Color(0xFFFFF3E0)
 val Orange200 = Color(0xFFFFCC80)
 val Orange500 = Color(0xFFFF9800)
 val Orange700 = Color(0xFFF57C00)
 val Orange900 = Color(0xFFE65100)
+val Orange1000 = Color(0xFF552803)
 
 val Blue200 = Color(0xFF81D4FA)
 val Blue500 = Color(0xFF03A9F4)

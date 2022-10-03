@@ -1,4 +1,4 @@
-package com.philkes.baseled.ui.tabs
+package com.philkes.baseled.ui.tab
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -13,7 +13,6 @@ import androidx.compose.ui.unit.dp
 import com.godaddy.android.colorpicker.HsvColor
 import com.godaddy.android.colorpicker.harmony.ColorHarmonyMode
 import com.godaddy.android.colorpicker.harmony.CustomColorPicker
-import com.godaddy.android.colorpicker.harmony.HarmonyColorPicker
 import com.philkes.baseled.Util
 import com.philkes.baseled.service.EspNowAction
 import com.philkes.baseled.ui.theme.BaseLedTheme
