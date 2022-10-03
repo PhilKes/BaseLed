@@ -103,13 +103,26 @@ private fun HarmonyColorPickerWithMagnifiers(
             mutableStateOf(false)
         }
 
+        var dragCounter = 0;
         fun updateColorWheel(newPosition: Offset, animate: Boolean) {
             // Work out if the new position is inside the circle we are drawing, and has a
             // valid color associated to it. If not, keep the current position
-            val newColor = colorForPosition(newPosition, IntSize(diameterPx.value, diameterPx.value), hsvColor.value.value)
+            val newColor = colorForPosition(
+                newPosition,
+                IntSize(diameterPx.value, diameterPx.value),
+                hsvColor.value.value
+            )
             if (newColor != null) {
                 animateChanges = animate
-                updatedOnColorChanged(newColor)
+                // Only send color update every 4th color change while dragging
+                if (currentlyChangingInput) {
+                    dragCounter++;
+                    if (dragCounter % 4 == 0) {
+                        updatedOnColorChanged(newColor)
+                    }
+                } else {
+                    updatedOnColorChanged(newColor)
+                }
             }
         }
 
@@ -124,6 +137,7 @@ private fun HarmonyColorPickerWithMagnifiers(
                         change.consumePositionChange()
                     }
                     currentlyChangingInput = false
+                    dragCounter = 0;
                 }
             }
         }

@@ -1,5 +1,6 @@
 package com.godaddy.android.colorpicker.harmony
 
+import android.util.Log
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Slider
 import androidx.compose.material.SliderDefaults
@@ -13,11 +14,15 @@ internal fun BrightnessBar(
     onValueChange: (Float) -> Unit,
     currentColor: HsvColor
 ) {
+    var dragCounter = 0;
     Slider(
         modifier = modifier,
         value = currentColor.value,
         onValueChange = {
-            onValueChange(it)
+            if ((++dragCounter) % 3 == 0) {
+                Log.d("Slider", it.toString())
+                onValueChange(it)
+            }
         },
         colors = SliderDefaults.colors(
             activeTrackColor = MaterialTheme.colors.primary,
