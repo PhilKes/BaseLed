@@ -6,21 +6,26 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Warning
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.lifecycleScope
-import com.philkes.baseled.ui.MainActivity
 import com.philkes.baseled.service.EspRestClient
+import com.philkes.baseled.ui.MainActivity
 import com.philkes.baseled.ui.component.TextIconButton
 import com.philkes.baseled.ui.dialog.EditSettingsDialog
 import com.philkes.baseled.ui.theme.BaseLedTheme
@@ -117,16 +122,15 @@ fun Content(
                 .padding(padding)
                 .fillMaxHeight(1f)
         ) {
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier.fillMaxHeight(0.4f)
-            ) {
-                Text(
-                    text = "Connecting to BaseLed Master Node...",
-                    textAlign = TextAlign.Center,
-                    fontSize = 32.sp
-                )
-            }
+            Spacer(modifier = Modifier.fillMaxHeight(0.1f))
+            Text("BaseLed", fontSize = 46.sp, textAlign = TextAlign.Center, fontWeight = FontWeight.Bold)
+            Spacer(modifier = Modifier.fillMaxHeight(0.02f))
+            Image(
+                painter = painterResource(id = R.drawable.icon),
+                contentDescription = "icon",
+                modifier = Modifier.fillMaxHeight(0.25f)
+            )
+            Spacer(modifier = Modifier.fillMaxHeight(0.2f))
             if (activeDialog.value == FindMasterNodeActivity.Dialog.NONE) {
                 CircularProgressIndicator(
                     modifier = Modifier
@@ -139,6 +143,16 @@ fun Content(
                     Icons.Filled.Warning,
                     "warning",
                     modifier = Modifier.size(60.dp)
+                )
+            }
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier.fillMaxHeight(0.25f)
+            ) {
+                Text(
+                    text = "Connecting to BaseLed Master Node...",
+                    textAlign = TextAlign.Center,
+                    fontSize = 28.sp
                 )
             }
             MasterNotFoundDialog(
