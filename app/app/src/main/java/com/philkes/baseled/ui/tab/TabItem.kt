@@ -16,8 +16,8 @@ sealed class TabItem(var icon: Int?, var title: String, var screen: ComposableFu
         "Animation",
         { AnimationTab() })
 
-    object Music : TabItem(
+    class Music(debug: Boolean, onAction: (action: EspNowAction, rgbHex: String) -> Unit) : TabItem(
         null,
         "Music",
-        { MusicTab() })
+        { MusicTab(debug, onAction) })
 }

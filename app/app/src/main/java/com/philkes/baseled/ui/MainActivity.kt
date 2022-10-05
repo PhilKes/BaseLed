@@ -69,7 +69,11 @@ class MainActivity : ComponentActivity() {
     fun MainScreen(settings: Settings, onFinishActivity: () -> Unit) {
         val editDialogOpen = remember { mutableStateOf(false) }
         val tabs =
-            listOf(TabItem.Rgb(currentColor, ::onSendAction), TabItem.Animation, TabItem.Music)
+            listOf(
+                TabItem.Rgb(currentColor, ::onSendAction),
+                TabItem.Animation,
+                TabItem.Music(settings.debug, ::onSendAction)
+            )
         pagerState = rememberPagerState(currentAction.actionId)
         Scaffold(
             topBar = { },

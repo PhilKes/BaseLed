@@ -1,7 +1,5 @@
 package com.philkes.baseled.ui.component
 
-import android.content.Context
-import android.media.AudioManager
 import android.media.audiofx.Visualizer
 import android.util.Log
 import androidx.compose.foundation.background
@@ -13,12 +11,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Color.Companion.Blue
-import androidx.compose.ui.graphics.Color.Companion.Green
-import androidx.compose.ui.graphics.Color.Companion.Red
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import com.philkes.baseled.Util
+import com.philkes.baseled.service.EspNowAction
 import kotlin.math.log10
+import kotlin.math.max
+import kotlin.math.min
 
 const val FFT_STEP = 2
 const val FFT_OFFSET = 4
@@ -26,80 +26,114 @@ const val FFT_NEEDED_PORTION = 3// 1/3
 const val MAX_VOLUME = 16
 
 @Composable
-fun AudioVisualizerComp(isRecording: Boolean) {
+fun AudioBar(
+    maxHeight: Float,
+    height: Float,
+    color: Color,
+    width: Float = 100.0f,
+    percentWidth: Float? = null
+) {
+    var modifier = Modifier
+        .height(height.dp)
+        .background(color)
+    modifier = if (percentWidth != null) {
+        modifier.fillMaxWidth(percentWidth)
+    } else {
+        modifier.width(width.dp)
+    }
+    Column() {
+        Spacer(modifier = Modifier.height((maxHeight - height).dp))
+        Box(
+            modifier = modifier
+        )
 
-    // on below line we are creating a
-    // variable to get current context.
+    }
+}
+
+@Composable
+fun AudioVisualizerComp(
+    isRecording: Boolean,
+    onAction: (action: EspNowAction, rgbHex: String) -> Unit,
+    debug: Boolean
+) {
     val ctx = LocalContext.current
 
-    // on below line we are initializing our audio manager.
-    val audioManager: AudioManager = remember {
-        ctx.getSystemService(Context.AUDIO_SERVICE) as AudioManager
-    }
-
-
+    val frequencyBands = 170
     val visualizer: MutableState<Visualizer?> = remember {
         mutableStateOf(null)
     }
 
     val rgb = remember { mutableStateOf(floatArrayOf(0f, 0f, 0f)) }
+    val magnitudes = remember { mutableStateOf(FloatArray(frequencyBands)) }
 
-    if (isRecording) {
-        if (visualizer.value == null) {
-            visualizer.value = createAudioVisualizer(rgb, audioManager)
+    visualizer.apply {
+        if (isRecording) {
+            if (value == null) {
+                value = createAudioVisualizer(rgb, magnitudes, onAction)
+            }
+            if (!value!!.enabled) {
+                value!!.apply { enabled = true }
+            }
+        } else if (value != null && value!!.enabled) {
+            value!!.release()
+            value = null
         }
-        if (!visualizer.value!!.enabled) {
-            visualizer.value!!.apply { enabled = true }
-        }
-    } else if (visualizer.value != null && visualizer.value!!.enabled) {
-        visualizer.value!!.release()
-        visualizer.value = null
     }
-    val maxBarHeight = 300
-    val red = (maxBarHeight * rgb.value[0]*2)
-    val green = (maxBarHeight * rgb.value[1]*2)
-    val blue = (maxBarHeight * rgb.value[2]*2)
 
-    Row(modifier = Modifier.border(1.0.dp, Color.White )) {
-        Column() {
-            Spacer(modifier = Modifier.height((maxBarHeight - red).dp))
-            Box(
-                modifier = Modifier
-                    .width(100.dp)
-                    .height(red.dp)
-//                    .height(200.dp)
-                    .background(Red)
+    val maxBarHeight = if (debug) 150.0f else 300.0f
+    var red = (maxBarHeight * rgb.value[0])
+    var green = (maxBarHeight * rgb.value[1])
+    var blue = (maxBarHeight * rgb.value[2])
+    Log.d("Bar RGB Values", "r: ${red} g: ${green} b: ${blue}")
+
+    Column(modifier = Modifier.fillMaxWidth(0.8f)) {
+        if (true) {
+            val colors = listOf(
+                Color.Red,
+                Color.Blue,
+                Color.Green,
+                Color.Cyan,
+                Color.Yellow,
+                Color.White,
+                Color.Gray
             )
-
+            Row(
+                modifier = Modifier
+                    .border(1.0.dp, Color.White)
+            ) {
+                for ((idx, magnitude) in magnitudes.value.withIndex()) {
+                    AudioBar(
+                        maxHeight = maxBarHeight,
+                        height = magnitude * maxBarHeight,
+                        color = colors[idx % colors.size],
+                        percentWidth = 1.0f / magnitudes.value.size
+                    )
+                }
+            }
         }
-        Column() {
-            Spacer(modifier = Modifier.height((maxBarHeight - green).dp))
-            Box(
-                modifier = Modifier
-                    .width(100.dp)
-                    .height(green.dp)
-                    .background(Green)
-            )
-        }
-        Column() {
-            Spacer(modifier = Modifier.height((maxBarHeight - blue).dp))
-            Box(
-                modifier = Modifier
-                    .width(100.dp)
-                    .height(blue.dp)
-                    .background(Blue)
-            )
-            Spacer(modifier = Modifier.height(100.dp))
-
+        Spacer(modifier = Modifier.height(12.dp))
+        Row(
+            modifier = Modifier
+                .border(1.0.dp, Color.White)
+        ) {
+            AudioBar(maxHeight = maxBarHeight, height = red, color = Color.Red)
+            AudioBar(maxHeight = maxBarHeight, height = green, color = Color.Green)
+            AudioBar(maxHeight = maxBarHeight, height = blue, color = Color.Blue)
         }
     }
 
 }
 
-fun createAudioVisualizer(rgb: MutableState<FloatArray>, audioManager: AudioManager): Visualizer {
+fun createAudioVisualizer(
+    rgb: MutableState<FloatArray>,
+    magnitudes: MutableState<FloatArray>,
+    onAction: (action: EspNowAction, rgbHex: String) -> Unit
+): Visualizer {
     val smoothingFactor = 0.2f
-    var magnitudes = floatArrayOf()
     val maxMagnitude = calculateMagnitude(128f, 128f)
+    Log.d("Visualizer Range", Visualizer.getMaxCaptureRate().toString())
+    var startTime = System.currentTimeMillis();
+    var endtime = System.currentTimeMillis();
     return Visualizer(0)
         .apply {
             captureSize = Visualizer.getCaptureSizeRange()[1]
@@ -110,52 +144,55 @@ fun createAudioVisualizer(rgb: MutableState<FloatArray>, audioManager: AudioMana
                         data: ByteArray?,
                         sampleRate: Int
                     ) {
+                        endtime = System.currentTimeMillis()
+                        Log.d("TIMING", endtime.minus(startTime).toString())
                         data?.let {
-                            magnitudes = convertFFTtoMagnitudes(
-                                magnitudes,
+                            magnitudes.value = convertFFTtoMagnitudes(
+                                magnitudes.value,
                                 maxMagnitude,
                                 smoothingFactor,
                                 data
                             )
-                            val stepsPerColor = magnitudes.size / 3
                             val newRgb = floatArrayOf(0f, 0f, 0f)
-                            for (i in magnitudes.indices) {
-                                if (i < stepsPerColor) {
-                                    //RED
-                                    newRgb[0] += magnitudes[i]
-                                } else if (i < stepsPerColor * 2) {
-                                    //GREEN
-                                    newRgb[1] += magnitudes[i]
-                                } else {
-                                    //BLUE
-                                    newRgb[2] += magnitudes[i]
-                                }
-                            }
-                            newRgb[0] = newRgb[0] / stepsPerColor
-                            newRgb[1] = newRgb[1] / stepsPerColor
-                            newRgb[2] = newRgb[2] / stepsPerColor
-                            /* Giving more INTENSITY to the most DOMINANT frequencies (and reducing the rest):*/
 
-/*                            if ((newRgb[0] > newRgb[1]) && (newRgb[1] > newRgb[2])) {
-                                newRgb[0] = newRgb[0] * 1.2f
-                                newRgb[1] = newRgb[1] * 0.8f;
-                                newRgb[2] = newRgb[2] * 0.8f;
-                            } else if ((newRgb[2] > newRgb[0]) && (newRgb[2] > newRgb[1])) {
-                                newRgb[2] = newRgb[2] * 1.2f;
-                                newRgb[1] = newRgb[1] * 0.8f;
-                                newRgb[0] = newRgb[0] * 0.8f;
-                            } else if ((newRgb[1] > newRgb[2]) && (newRgb[1] > newRgb[0])) {
-                                newRgb[1] = newRgb[1] * 1.2f;
-                                newRgb[0] = newRgb[0] * 0.8f;
-                                newRgb[2] = newRgb[2] * 0.8f;
-                            }*/
-/*                            newRgb[0]  = 255 * convBrightness(newRgb[0]);
-                            newRgb[1]  = 255 * convBrightness(newRgb[1]);
-                            newRgb[2]  = 255 * convBrightness(newRgb[2]);*/
+                            val redRange = 4..10;
+                            val greenRange = 50..80;
+                            val blueRange = 120..169;
+                            newRgb[0] = calcMeanOfRange(magnitudes.value, redRange) * 0.8f
+                            newRgb[1] = calcMeanOfRange(magnitudes.value, greenRange) * 1.2f
+                            newRgb[2] = calcMeanOfRange(magnitudes.value, blueRange) * 1.6f
+
+                            if (newRgb[0] > newRgb[1] && newRgb[0] > newRgb[2]) {
+                                newRgb[0] = min(1.0f, newRgb[0] * 1.3f)
+                                newRgb[1] = min(1.0f, newRgb[1] * 0.8f)
+                                newRgb[2] = min(1.0f, newRgb[2] * 0.8f)
+                            } else if (newRgb[1] > newRgb[0] && newRgb[1] > newRgb[2]) {
+                                newRgb[1] = min(1.0f, newRgb[1] * 1.3f)
+                                newRgb[0] = min(1.0f, newRgb[0] * 0.8f)
+                                newRgb[2] = min(1.0f, newRgb[2] * 0.8f)
+                            } else if (newRgb[2] > newRgb[0] && newRgb[2] > newRgb[1]) {
+                                newRgb[2] = min(1.0f, newRgb[2] * 1.3f)
+                                newRgb[0] = min(1.0f, newRgb[0] * 0.8f)
+                                newRgb[1] = min(1.0f, newRgb[1] * 0.8f)
+                            }
+
                             rgb.value = newRgb
-                            Log.d("AudioVisualizer", magnitudes.joinToString { it.toString() })
-                            Log.d("AudioVisualizer", rgb.value.joinToString { it.toString() })
+//                            Log.d("AudioVisualizer", rgb.value.joinToString { it.toString() })
+                            Log.d("RGB Values", "r: ${newRgb[0]} g: ${newRgb[1]} b: ${newRgb[2]}")
+                            startTime = System.currentTimeMillis()
+                            onAction(
+                                EspNowAction.RGB,
+                                Util.intToHexStr(Color(newRgb[0], newRgb[1], newRgb[2]).toArgb())
+                            )
                         }
+                    }
+
+                    private fun calcMeanOfRange(data: FloatArray, range: IntRange): Float {
+                        var x = 0.0f
+                        for (i in range) {
+                            x = x + data[i]
+                        }
+                        return x / (range.last - range.first)
                     }
 
                     override fun onWaveFormDataCapture(
@@ -164,18 +201,11 @@ fun createAudioVisualizer(rgb: MutableState<FloatArray>, audioManager: AudioMana
                         sampleRate: Int
                     ) = Unit
                 },
-                Visualizer.getMaxCaptureRate() * 2 / 3,
+                Visualizer.getMaxCaptureRate(),
                 false,
                 true
             )
         }
-}
-
-fun convBrightness(b: Float): Float {
-    var c =
-        b / 614 // The maximun intensity value in theory is 31713 (but we are never having the volume that high)
-    if (c < 0.2f) c = 0.0f else if (c > 1) c = 1.00f
-    return c
 }
 
 fun convertFFTtoMagnitudes(

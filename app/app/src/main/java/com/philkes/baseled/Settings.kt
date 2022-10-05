@@ -24,16 +24,7 @@ class Settings(val context: Context) {
                 .putString(context.getString(R.string.key_node_ips),  java.lang.String.join(",", value))
                 .apply()
         }
-    var debug: Boolean
-        get() {
-            return sharedPreferences.getBoolean(context.getString(R.string.key_debug), true)
-        }
-        set(value) {
-            sharedPreferences.edit()
-                .putBoolean(context.getString(R.string.key_debug), value)
-                .apply()
-        }
-
+    var debug: Boolean = false
     var lastMasterIp: String
         get() {
             return sharedPreferences.getString(context.getString(R.string.key_last_master_ip), null) ?: nodeIps[0]
