@@ -4,7 +4,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.*
-import com.philkes.baseled.ui.component.DefaultButton;
+import com.philkes.baseled.ui.component.TextIconButton;
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -68,7 +68,7 @@ fun EditSettingsDialog(
                 }
             },
             confirmButton = {
-                DefaultButton(
+                TextIconButton(
                     text = "Save",
                     onClick = {
                         settings.nodeIps = ips.value
@@ -76,7 +76,7 @@ fun EditSettingsDialog(
                     })
             },
             dismissButton = {
-                DefaultButton(
+                TextIconButton(
                     text = "Cancel",
                     color = MaterialTheme.colors.primary,
                     onClick = onClose,

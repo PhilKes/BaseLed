@@ -7,7 +7,6 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
@@ -16,14 +15,13 @@ import androidx.compose.material.icons.filled.Warning
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.lifecycleScope
 import com.philkes.baseled.ui.MainActivity
 import com.philkes.baseled.service.EspRestClient
-import com.philkes.baseled.ui.component.DefaultButton
+import com.philkes.baseled.ui.component.TextIconButton
 import com.philkes.baseled.ui.dialog.EditSettingsDialog
 import com.philkes.baseled.ui.theme.BaseLedTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -187,7 +185,7 @@ fun MasterNotFoundDialog(
                 }
             },
             confirmButton = {
-                DefaultButton(
+                TextIconButton(
                     text = "Retry",
                     onClick = {
                         onChangeDialog(FindMasterNodeActivity.Dialog.NONE)
@@ -195,7 +193,7 @@ fun MasterNotFoundDialog(
                     })
             },
             dismissButton = {
-                DefaultButton(
+                TextIconButton(
                     text = "Edit Settings",
                     color = MaterialTheme.colors.primary,
                     onClick = {
