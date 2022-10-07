@@ -5,6 +5,9 @@ import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
 import com.philkes.baseled.Settings
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.isActive
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.WebSocket
@@ -29,7 +32,8 @@ class EspRestClient(private val settings: Settings) {
     }
 
     @RequiresApi(Build.VERSION_CODES.S)
-    suspend fun searchMasterNodeIp(): String? {
+    @Throws(CancellationException::class)
+    suspend fun searchMasterNodeIp(coroutineScope: CoroutineScope): String? {
         if (settings.debug) {
             tryConnectToWebSocket("ip")
             return "master-node-ip"
@@ -44,6 +48,9 @@ class EspRestClient(private val settings: Settings) {
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
+            }
+            if(!coroutineScope.isActive){
+                throw CancellationException("Search Master Node was cancelled")
             }
         }
         return null
@@ -64,7 +71,7 @@ class EspRestClient(private val settings: Settings) {
 
     suspend fun sendAction(action: EspNowAction, payload: String) {
         if (settings.debug) {
-            Thread.sleep(1000)
+            Thread.sleep(100)
             Log.d(
                 TAG,
                 "Successfully sent: action: '$action' payload: '$payload'"

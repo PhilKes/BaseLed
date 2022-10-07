@@ -13,4 +13,15 @@
     <string name="hello_first_fragment">Hello first fragment</string>
     <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
     <string name="intent_key_master_node">masterNodeIp</string>
+    <string name="txt_search_master">Searching Master Node in local WiFi...</string>
+    <string name="txt_retry_search">Please retry to search Master Node</string>
+    <string name="txt_master_not_found">Active Master node not found</string>
+    <string name="txt_master_not_found_hint">Please make sure at least one BaseLed is powered on and connected to your local WiFi</string>
+    <string name="txt_rety">Retry</string>
+    <string name="txt_edit_settings">Edit Settings</string>
+    <string name="txt_stop">Stop</string>
+    <string name="txt_play">Play</string>
+    <string name="txt_audio_permission_hint">You need to grant the record audio permission in order to use the Music mode!</string>
+    <string name="txt_generate_tone">\"Generate Tone: \"</string>
+    <string name="txt_hertz">\" Hz\"</string>
 </resources>

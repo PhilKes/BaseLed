@@ -22,11 +22,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.philkes.baseled.R
 import com.philkes.baseled.service.EspNowAction
 import com.philkes.baseled.ui.MainActivity
 import com.philkes.baseled.ui.component.AudioVisualizerComp
@@ -66,38 +68,40 @@ fun MusicTab(debug: Boolean, onAction: (action: EspNowAction, rgbHex: String) ->
         val context = LocalContext.current as MainActivity
         val maxFrequency = 5000.0f
         val step = 10
-        if (true) {
-            val frequency = remember {
-                mutableStateOf(0.0f)
-            }
-            val tone: MutableState<AudioTrack?> = remember {
-                mutableStateOf(null)
-            }
-            Row(
-                horizontalArrangement = Arrangement.Center,
-                modifier = Modifier.fillMaxWidth(1f)
-            ) {
-                Column {
-                    Text(
-                        text = "Generate Tone: ${frequency.value} Hz",
-                        textAlign = TextAlign.Center
-                    )
-                    Spacer(modifier = Modifier.height(10.dp))
-                    Slider(
-                        value = frequency.value,
-                        onValueChange = {
-                            frequency.value = it
-                            tone.value?.apply { stop() }
-                            if (it > 0) {
-                                tone.value = generateTone(it.toDouble(), 10000)
-                                tone.value!!.setLoopPoints(0, tone.value!!.bufferSizeInFrames, -1)
-                                tone.value!!.play()
-                            }
-                        },
-                        valueRange = 0.0f..maxFrequency,
-                        steps = (maxFrequency / step).toInt()
-                    )
-                }
+        val frequency = remember {
+            mutableStateOf(0.0f)
+        }
+        val tone: MutableState<AudioTrack?> = remember {
+            mutableStateOf(null)
+        }
+        Row(
+            horizontalArrangement = Arrangement.Center,
+            modifier = Modifier.fillMaxWidth(1f)
+        ) {
+            Column {
+                Text(
+                    text = buildString {
+                        append(stringResource(R.string.txt_generate_tone))
+                        append(frequency.value)
+                        append(stringResource(R.string.txt_hertz))
+                    },
+                    textAlign = TextAlign.Center
+                )
+                Spacer(modifier = Modifier.height(10.dp))
+                Slider(
+                    value = frequency.value,
+                    onValueChange = {
+                        frequency.value = it
+                        tone.value?.apply { stop() }
+                        if (it > 0) {
+                            tone.value = generateTone(it.toDouble(), 10000)
+                            tone.value!!.setLoopPoints(0, tone.value!!.bufferSizeInFrames, -1)
+                            tone.value!!.play()
+                        }
+                    },
+                    valueRange = 0.0f..maxFrequency,
+                    steps = (maxFrequency / step).toInt()
+                )
             }
         }
         Row(
@@ -114,10 +118,12 @@ fun MusicTab(debug: Boolean, onAction: (action: EspNowAction, rgbHex: String) ->
             TextIconButton(
                 fontSize = 24.sp,
                 icon = if (isRecording.value) Icons.Filled.Pause else Icons.Filled.PlayArrow,
-                text = if (isRecording.value) "Stop" else "Play",
+                text = if (isRecording.value) stringResource(R.string.txt_stop) else stringResource(
+                    R.string.txt_play
+                ),
                 onClick = {
                     if (!isRecording.value) {
-                        CheckAudioRecordPermission(context) {
+                        checkAudioRecordPermission(context) {
                             isRecording.value = true
                         }
                     } else {
@@ -129,7 +135,7 @@ fun MusicTab(debug: Boolean, onAction: (action: EspNowAction, rgbHex: String) ->
     }
 }
 
-fun CheckAudioRecordPermission(context: MainActivity, block: () -> Unit) {
+fun checkAudioRecordPermission(context: MainActivity, block: () -> Unit) {
     if (ContextCompat.checkSelfPermission(
             context,
             Manifest.permission.RECORD_AUDIO
@@ -141,7 +147,7 @@ fun CheckAudioRecordPermission(context: MainActivity, block: () -> Unit) {
                 Manifest.permission.RECORD_AUDIO
             )
         ) {
-            context.showToast("You need to grant the record audio permission in order to use the Music mode!")
+            context.showToast(context.getString(R.string.txt_audio_permission_hint))
         } else {
             ActivityCompat.requestPermissions(
                 context,
