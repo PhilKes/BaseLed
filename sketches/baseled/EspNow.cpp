@@ -1,4 +1,5 @@
 #include "EspNow.h"
+#include "RGBControl.h"
 
 const int CONFIG = 0;
 const int ACTION = 1;
@@ -36,7 +37,11 @@ void OnMessageReceived(uint8_t *mac, uint8_t *incomingData, uint8_t len) {
 
   if (receivedMsg.actionType == ACTION) {
     currentAction = receivedMsg.action;
-    currentColor = receivedMsg.payload;
+    currentFrame = 0;
+    if (currentAction == ANIM_RGB) {
+      currentColor = receivedMsg.payload;
+    }
+    saveColorAndAction();
     actionChanged = true;
   } else if (receivedMsg.actionType == CONFIG) {
     if (receivedMsg.action == I_AM_MASTER) {
@@ -79,9 +84,9 @@ void broadcast(int actionType, int action, uint32_t payload) {
 }
 
 void setupAsSlave() {
-  #if DEBUG
+#if DEBUG
   Serial.println("Received MASTER, init me as SLAVE");
-  #endif
+#endif
   //esp_now_set_self_role(ESP_NOW_ROLE_SLAVE);
 }
 

@@ -1,6 +1,7 @@
 package com.philkes.baseled.ui
 
 import android.annotation.SuppressLint
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -18,6 +19,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.lifecycleScope
 import com.google.accompanist.pager.*
+import com.philkes.baseled.FindMasterNodeActivity
+import com.philkes.baseled.R
 import com.philkes.baseled.Settings
 import com.philkes.baseled.service.EspNowAction
 import com.philkes.baseled.service.EspRestClient
@@ -53,6 +56,14 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         masterNodeIp = settings.lastMasterIp
         espRestClient.setOnActionReceived(::onActionReceived)
+        espRestClient.setOnPingFailed {
+            showToast(buildString {
+                append(getString(R.string.txt_connection_lost_1))
+                append(masterNodeIp)
+                append(getString(R.string.txt_connection_lost_2))
+            })
+            finish()
+        }
         setContent {
             BaseLedTheme(darkTheme = true) {
                 MainScreen(settings) {
@@ -74,7 +85,13 @@ class MainActivity : ComponentActivity() {
                 TabItem.Animation,
                 TabItem.Music(settings.debug, ::onSendAction)
             )
-        pagerState = rememberPagerState(currentAction.actionId)
+        pagerState = rememberPagerState(
+            if (currentAction.actionId == EspNowAction.RGB_WHEEL.actionId) {
+                EspNowAction.RGB.actionId
+            } else {
+                currentAction.actionId
+            }
+        )
         Scaffold(
             topBar = { },
             floatingActionButton = {
@@ -114,10 +131,14 @@ class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalPagerApi::class)
     fun onActionReceived(action: EspNowAction, payload: String) {
         currentAction = action
-        currentColor = payload
+        currentColor = payload.substring(0,6)
         if (pagerState != null) {
             lifecycleScope.launch {
-                pagerState!!.animateScrollToPage(currentAction.actionId)
+                if (currentAction.actionId == EspNowAction.RGB_WHEEL.actionId) {
+                    pagerState!!.animateScrollToPage(EspNowAction.RGB.actionId)
+                } else {
+                    pagerState!!.animateScrollToPage(currentAction.actionId)
+                }
             }
         }
     }
@@ -161,6 +182,11 @@ class MainActivity : ComponentActivity() {
         HorizontalPager(state = pagerState, count = tabs.size, userScrollEnabled = false) { page ->
             tabs[page].screen()
         }
+    }
+
+    override fun onBackPressed() {
+//        super.onBackPressed()
+        startActivity(Intent(this, FindMasterNodeActivity::class.java))
     }
 
 }

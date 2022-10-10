@@ -39,6 +39,10 @@ fun RgbTab(
                 sendAction.invoke(EspNowAction.RGB, Util.intToHexStr(color.toColor().toArgb()))
             }
         )
+
+        AnimationItem(animation = ANIMATIONS[0]) {
+            sendAction(EspNowAction.RGB_WHEEL, "")
+        }
     }
 }
 

@@ -62,8 +62,11 @@ fun MusicTab(debug: Boolean, onAction: (action: EspNowAction, rgbHex: String) ->
             .fillMaxSize()
             .background(MaterialTheme.colors.background)
             .wrapContentSize(Alignment.Center)
+            .padding(20.dp)
             .verticalScroll(rememberScrollState())
     ) {
+        // TODO If recording start as background service with notification bar message
+        // to keep recording even if other App is currently opened
         val isRecording = remember { mutableStateOf(false) }
         val context = LocalContext.current as MainActivity
         val maxFrequency = 5000.0f

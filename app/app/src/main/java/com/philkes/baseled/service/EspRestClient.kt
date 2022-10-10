@@ -11,6 +11,7 @@ import kotlinx.coroutines.isActive
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.WebSocket
+import java.time.Duration
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
 
@@ -18,9 +19,13 @@ class EspRestClient(private val settings: Settings) {
     private val TAG = "EspRestClient";
     private val WEBSOCKET_PORT = 81
 
-    private val client = OkHttpClient.Builder().connectTimeout(4, TimeUnit.SECONDS).build()
+    private val client = OkHttpClient.Builder()
+        .connectTimeout(4, TimeUnit.SECONDS)
+        .pingInterval(Duration.ofSeconds(3))
+        .build()
     private lateinit var ws: WebSocket
     private lateinit var listener: EspWebSocketListener
+    private lateinit var onPingFailed: () -> Unit
 
     fun setOnActionReceived(onActionReceived: (EspNowAction, String) -> Unit) {
         listener.setOnMessageReceived { msg ->
@@ -29,6 +34,9 @@ class EspRestClient(private val settings: Settings) {
                 msg.substring(2)
             )
         }
+    }
+    fun setOnPingFailed(onPingFailed: () -> Unit) {
+        listener.setOnPingFailed(onPingFailed)
     }
 
     @RequiresApi(Build.VERSION_CODES.S)
@@ -43,13 +51,13 @@ class EspRestClient(private val settings: Settings) {
                 val future: CompletableFuture<Boolean> =
                     tryConnectToWebSocket(ip)
                 if (future.join()) {
-                    client.dispatcher.executorService.shutdown()
+//                    client.dispatcher.executorService.shutdown()
                     return ip
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
             }
-            if(!coroutineScope.isActive){
+            if (!coroutineScope.isActive) {
                 throw CancellationException("Search Master Node was cancelled")
             }
         }

@@ -21,27 +21,28 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.godaddy.android.colorpicker.HsvColor
-import com.godaddy.android.colorpicker.harmony.BrightnessBar
 import com.philkes.baseled.R
+import com.philkes.baseled.service.EspNowAction
 import com.philkes.baseled.ui.theme.BaseLedTheme
 
 data class Animation(val animationId: Int, val iconResource: Int);
 
+val ANIMATIONS = listOf(
+    Animation(EspNowAction.RGB_WHEEL.actionId, R.drawable.rgb_color_room),
+    Animation(5, R.drawable.icon),
+    Animation(6, R.drawable.icon),
+    Animation(7, R.drawable.icon),
+    Animation(8, R.drawable.icon),
+    Animation(9, R.drawable.icon),
+)
 
 @Composable
 fun AnimationTab() {
     val hsvColor = remember { mutableStateOf(HsvColor.from(Color.Red)) }
 
-    val animations = listOf(
-        Animation(0, R.drawable.rgb_color_room),
-        Animation(1, R.drawable.icon),
-        Animation(2, R.drawable.icon),
-        Animation(3, R.drawable.icon),
-        Animation(4, R.drawable.icon),
-        Animation(5, R.drawable.icon),
-    )
+
     val activeAnimation: MutableState<Animation?> = remember {
-        mutableStateOf(animations[0])
+        mutableStateOf(ANIMATIONS[0])
     }
 
     Column(
@@ -69,14 +70,14 @@ fun AnimationTab() {
             columns = GridCells.Fixed(3),
             horizontalArrangement = Arrangement.Center
         ) {
-            items(animations) { animation ->
+            items(ANIMATIONS) { animation ->
                 AnimationItem(animation, animation == activeAnimation.value) {
                     activeAnimation.value = animation
                 }
             }
         }
         Spacer(modifier = Modifier.fillMaxHeight(0.1f))
-        BrightnessBar(
+/*        BrightnessBar(
             modifier = Modifier
                 .padding(top = 16.dp)
                 .fillMaxWidth(),
@@ -85,7 +86,7 @@ fun AnimationTab() {
 //                    updatedBrightness(hsvColor.value.TODO Only brightness)
             },
             currentColor = hsvColor.value
-        )
+        )*/
 
     }
 }

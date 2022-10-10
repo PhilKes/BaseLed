@@ -7,6 +7,8 @@
 extern bool actionChanged;
 extern uint8_t currentAction;
 extern uint32_t currentColor;
+extern uint8_t currentBrightness;
+extern uint16_t currentFrame;
 
 extern bool receivedMaster;
 extern bool iAmMaster;

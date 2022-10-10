@@ -1,9 +1,13 @@
 #include "globals.h"
+#include "RGBControl.h"
 #include <EEPROM.h>
 
 bool actionChanged = true;
 uint8_t currentAction = 0;
 uint32_t currentColor = 0xFFFFFF;
+uint8_t currentBrightness = 0xFF;
+
+uint16_t currentFrame = 0;
 
 bool receivedMaster = false;
 bool iAmMaster = false;
@@ -22,7 +26,7 @@ void loadColorAndAction() {
   EEPROM.get(ADDRESS_COLOR, currentColor);
   EEPROM.end();
 
-  if (currentAction > 3) {
+  if (currentAction > ANIM_RGB_WHEEL) {
     currentAction = 0;
     currentColor = 0xFFFFFF;
   }
@@ -39,7 +43,7 @@ void saveColorAndAction() {
   EEPROM.put(ADDRESS_ACTION, currentAction);
   EEPROM.put(ADDRESS_COLOR, currentColor);
   EEPROM.commit();
-
+  EEPROM.end();
 #if DEBUG
   Serial.print("Stored to EEPROM: action: ");
   Serial.print(currentAction);

@@ -34,7 +34,7 @@ void initWifi() {
 void setup() {
   initRGB();
   loadColorAndAction();
-  updateRGB(currentAction, currentColor);
+  updateLed();
 #if DEBUG
   Serial.begin(57600);
 #endif
@@ -45,6 +45,7 @@ void setup() {
   }
   ArduinoOTA.setPassword(OTA_PASSWORD);
   ArduinoOTA.begin();
+  actionChanged = true;
 }
 
 void loop() {
@@ -52,12 +53,11 @@ void loop() {
     webSocket.loop();
     if (actionChanged) {
       broadcast(ACTION, currentAction, currentColor);
-      saveColorAndAction();
     }
   }
-  if (actionChanged) {
-    updateRGB(currentAction, currentColor);
+  if (actionChanged || (currentAction == ANIM_RGB_WHEEL)) {
     actionChanged = false;
+    updateLed();
   }
   ArduinoOTA.handle();
 }

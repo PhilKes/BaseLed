@@ -7,15 +7,21 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.annotation.RequiresApi
-import androidx.compose.animation.*
+import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.filled.Wifi
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -29,10 +35,16 @@ import com.philkes.baseled.service.EspRestClient
 import com.philkes.baseled.ui.MainActivity
 import com.philkes.baseled.ui.component.TextIconButton
 import com.philkes.baseled.ui.dialog.EditSettingsDialog
+import com.philkes.baseled.ui.showToast
 import com.philkes.baseled.ui.theme.BaseLedTheme
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import java.util.*
 import javax.inject.Inject
+import kotlin.concurrent.schedule
 
 @AndroidEntryPoint
 class FindMasterNodeActivity : ComponentActivity() {
@@ -70,7 +82,7 @@ class FindMasterNodeActivity : ComponentActivity() {
                     },
                     activeDialog = activeDialog,
                     settings = settings,
-                    jobActive = if (currentJob.value != null) currentJob.value!!.isActive else false
+                    showActive = if (currentJob.value != null) currentJob.value!!.isActive else true
                 )
             }
         }
@@ -79,7 +91,9 @@ class FindMasterNodeActivity : ComponentActivity() {
     @RequiresApi(Build.VERSION_CODES.S)
     override fun onStart() {
         super.onStart()
-        searchMasterNode()
+        Timer("SearchMasterNode", false).schedule(2000) {
+            searchMasterNode()
+        }
     }
 
     @RequiresApi(Build.VERSION_CODES.S)
@@ -93,6 +107,12 @@ class FindMasterNodeActivity : ComponentActivity() {
                     settings.lastMasterIp = foundMasterNode
                     val intent = Intent(this@FindMasterNodeActivity, MainActivity::class.java)
                     startActivity(intent)
+                    lifecycleScope.launch {
+                        showToast(buildString {
+                            append(getString(R.string.txt_connect_success))
+                            append(foundMasterNode)
+                        })
+                    }
                 }
             } catch (e: CancellationException) {
                 Log.d(TAG, e.message!!)
@@ -116,7 +136,7 @@ fun Content(
     onSearchMasterNode: () -> Unit,
     onChangeDialog: (FindMasterNodeActivity.Dialog) -> Unit,
     activeDialog: MutableState<FindMasterNodeActivity.Dialog>,
-    jobActive: Boolean,
+    showActive: Boolean,
     settings: Settings
 ) {
     Scaffold(
@@ -153,7 +173,7 @@ fun Content(
             )
             Spacer(modifier = Modifier.fillMaxHeight(0.075f))
 
-            Crossfade(targetState = jobActive, animationSpec = tween(300)) { active ->
+            Crossfade(targetState = showActive, animationSpec = tween(300)) { active ->
                 if (active) {
                     val visibility by rememberInfiniteTransition().animateFloat(
                         initialValue = 0f,
@@ -186,10 +206,11 @@ fun Content(
                 modifier = Modifier.fillMaxHeight(0.25f)
             ) {
                 Text(
-                    text = if (jobActive) stringResource(R.string.txt_search_master) else stringResource(
-                                            R.string.txt_retry_search),
+                    text = if (showActive) stringResource(R.string.txt_search_master) else stringResource(
+                        R.string.txt_retry_search
+                    ),
                     textAlign = TextAlign.Center,
-                    fontSize =  22.sp
+                    fontSize = 22.sp
                 )
             }
             MasterNotFoundDialog(
