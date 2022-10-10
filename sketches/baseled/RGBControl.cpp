@@ -18,6 +18,7 @@ void initRGB() {
 
 void showRGB(uint32_t color) {
   pixels.setPixelColor(0, color);
+  pixels.setBrightness(currentBrightness);
   pixels.show();
 }
 

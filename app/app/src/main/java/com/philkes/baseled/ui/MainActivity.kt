@@ -11,10 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.lifecycleScope
@@ -29,10 +26,17 @@ import com.philkes.baseled.ui.tab.TabItem
 import com.philkes.baseled.ui.theme.BaseLedTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+
+data class State(
+    var action: EspNowAction = EspNowAction.RGB,
+    var color: Color = Color.White,
+    var brightness: Int = 255
+);
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
@@ -44,24 +48,27 @@ class MainActivity : ComponentActivity() {
 
     lateinit var masterNodeIp: String
 
-    var currentAction: EspNowAction = EspNowAction.RGB
-    var currentColor: String = "FFFFFF"
-    var lastEspNowJob: Job? = null
-
     @OptIn(ExperimentalPagerApi::class)
     private var pagerState: PagerState? = null
 
-    @OptIn(ExperimentalPagerApi::class)
+    private val state: MutableState<State> = mutableStateOf(State())
+
+    var lastEspNowJob: Job? = null
+
+    @OptIn(ExperimentalPagerApi::class, ExperimentalCoroutinesApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         masterNodeIp = settings.lastMasterIp
         espRestClient.setOnActionReceived(::onActionReceived)
         espRestClient.setOnPingFailed {
-            showToast(buildString {
-                append(getString(R.string.txt_connection_lost_1))
-                append(masterNodeIp)
-                append(getString(R.string.txt_connection_lost_2))
-            })
+            lifecycleScope.launch {
+                showToast(buildString {
+                    append(getString(R.string.txt_connection_lost_1))
+                    append(masterNodeIp)
+                    append(getString(R.string.txt_connection_lost_2))
+                })
+            }
+            startActivity(Intent(this, FindMasterNodeActivity::class.java))
             finish()
         }
         setContent {
@@ -78,18 +85,18 @@ class MainActivity : ComponentActivity() {
     @Composable
     @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
     fun MainScreen(settings: Settings, onFinishActivity: () -> Unit) {
-        val editDialogOpen = remember { mutableStateOf(false) }
+        var editDialogOpen by remember { mutableStateOf(false) }
         val tabs =
             listOf(
-                TabItem.Rgb(currentColor, ::onSendAction),
-                TabItem.Animation,
-                TabItem.Music(settings.debug, ::onSendAction)
+                TabItem.Rgb(state, ::onSendAction),
+                TabItem.Animation(state, ::onSendAction),
+                TabItem.Music(state, ::onSendAction, settings.debug)
             )
         pagerState = rememberPagerState(
-            if (currentAction.actionId == EspNowAction.RGB_WHEEL.actionId) {
+            if (state.value.action.actionId == EspNowAction.RGB_WHEEL.actionId) {
                 EspNowAction.RGB.actionId
             } else {
-                currentAction.actionId
+                state.value.action.actionId
             }
         )
         Scaffold(
@@ -97,7 +104,7 @@ class MainActivity : ComponentActivity() {
             floatingActionButton = {
                 FloatingActionButton(
                     contentColor = MaterialTheme.colors.onSurface,
-                    onClick = { editDialogOpen.value = !editDialogOpen.value }) {
+                    onClick = { editDialogOpen = !editDialogOpen }) {
                     Icon(Icons.Filled.Settings, "settings")
                 }
             }
@@ -107,11 +114,11 @@ class MainActivity : ComponentActivity() {
                 TabsContent(tabs = tabs, pagerState = pagerState!!)
             }
             EditSettingsDialog(
-                open = editDialogOpen.value,
-                onClose = { editDialogOpen.value = false },
+                open = editDialogOpen,
+                onClose = { editDialogOpen = false },
                 settings = settings
             ) {
-                editDialogOpen.value = false
+                editDialogOpen = false
                 onFinishActivity();
             }
 
@@ -123,6 +130,7 @@ class MainActivity : ComponentActivity() {
         if (lastEspNowJob != null && lastEspNowJob!!.isActive) {
             lastEspNowJob!!.cancel()
         }
+        state.value = state.value.copy(action = action)
         lastEspNowJob = lifecycleScope.launch(Dispatchers.IO) {
             espRestClient.sendAction(action, payload)
         }
@@ -130,14 +138,17 @@ class MainActivity : ComponentActivity() {
 
     @OptIn(ExperimentalPagerApi::class)
     fun onActionReceived(action: EspNowAction, payload: String) {
-        currentAction = action
-        currentColor = payload.substring(0,6)
+        state.value = state.value.copy(
+            action = action,
+            color = Color(payload.substring(0, 6).toInt(16)).copy(alpha = 1.0f),
+            brightness = payload.substring(7, 9).toInt(16)
+        )
         if (pagerState != null) {
             lifecycleScope.launch {
-                if (currentAction.actionId == EspNowAction.RGB_WHEEL.actionId) {
+                if (state.value.action.actionId == EspNowAction.RGB_WHEEL.actionId) {
                     pagerState!!.animateScrollToPage(EspNowAction.RGB.actionId)
                 } else {
-                    pagerState!!.animateScrollToPage(currentAction.actionId)
+                    pagerState!!.animateScrollToPage(state.value.action.actionId)
                 }
             }
         }

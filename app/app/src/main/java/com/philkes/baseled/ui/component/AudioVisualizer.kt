@@ -17,7 +17,6 @@ import androidx.compose.ui.unit.dp
 import com.philkes.baseled.Util
 import com.philkes.baseled.service.EspNowAction
 import kotlin.math.log10
-import kotlin.math.max
 import kotlin.math.min
 
 const val FFT_STEP = 2
@@ -182,7 +181,7 @@ fun createAudioVisualizer(
                             startTime = System.currentTimeMillis()
                             onAction(
                                 EspNowAction.RGB,
-                                Util.intToHexStr(Color(newRgb[0], newRgb[1], newRgb[2]).toArgb())
+                                Util.argbToRGBHexStr(Color(newRgb[0], newRgb[1], newRgb[2]).toArgb())
                             )
                         }
                     }

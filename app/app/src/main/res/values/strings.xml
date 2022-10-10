@@ -22,9 +22,9 @@
     <string name="txt_stop">Stop</string>
     <string name="txt_play">Play</string>
     <string name="txt_audio_permission_hint">You need to grant the record audio permission in order to use the Music mode!</string>
-    <string name="txt_generate_tone">\"Generate Tone: \"</string>
-    <string name="txt_hertz">\" Hz\"</string>
-    <string name="txt_connect_success">\"Successfully connected to: \"</string>
-    <string name="txt_connection_lost_1">\"Connection to to \"</string>
-    <string name="txt_connection_lost_2">\" has been lost!\"</string>
+    <string name="txt_generate_tone">Generate Tone: </string>
+    <string name="txt_hertz"> Hz</string>
+    <string name="txt_connect_success">Successfully connected to: </string>
+    <string name="txt_connection_lost_1">Connection to </string>
+    <string name="txt_connection_lost_2"> has been lost!</string>
 </resources>
