@@ -11,13 +11,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import com.philkes.baseled.Util
-import com.philkes.baseled.service.EspNowAction
 import kotlin.math.log10
-import kotlin.math.max
 import kotlin.math.min
 
 const val FFT_STEP = 2
@@ -53,7 +49,7 @@ fun AudioBar(
 @Composable
 fun AudioVisualizerComp(
     isRecording: Boolean,
-    onAction: (action: EspNowAction, rgbHex: String) -> Unit,
+    onAction: (color: Color) -> Unit,
     debug: Boolean
 ) {
     val ctx = LocalContext.current
@@ -127,7 +123,7 @@ fun AudioVisualizerComp(
 fun createAudioVisualizer(
     rgb: MutableState<FloatArray>,
     magnitudes: MutableState<FloatArray>,
-    onAction: (action: EspNowAction, rgbHex: String) -> Unit
+    onAction: (color: Color) -> Unit
 ): Visualizer {
     val smoothingFactor = 0.2f
     val maxMagnitude = calculateMagnitude(128f, 128f)
@@ -180,10 +176,7 @@ fun createAudioVisualizer(
 //                            Log.d("AudioVisualizer", rgb.value.joinToString { it.toString() })
                             Log.d("RGB Values", "r: ${newRgb[0]} g: ${newRgb[1]} b: ${newRgb[2]}")
                             startTime = System.currentTimeMillis()
-                            onAction(
-                                EspNowAction.RGB,
-                                Util.intToHexStr(Color(newRgb[0], newRgb[1], newRgb[2]).toArgb())
-                            )
+                            onAction(Color(newRgb[0], newRgb[1], newRgb[2]))
                         }
                     }
 

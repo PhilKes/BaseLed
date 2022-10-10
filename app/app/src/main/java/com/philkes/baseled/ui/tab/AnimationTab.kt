@@ -71,7 +71,7 @@ fun AnimationTab() {
             horizontalArrangement = Arrangement.Center
         ) {
             items(ANIMATIONS) { animation ->
-                AnimationItem(animation, animation == activeAnimation.value) {
+                AnimationItem(animation, active = animation == activeAnimation.value) {
                     activeAnimation.value = animation
                 }
             }
@@ -92,7 +92,12 @@ fun AnimationTab() {
 }
 
 @Composable
-fun AnimationItem(animation: Animation, active: Boolean = false, onClickAction: () -> Unit) {
+fun AnimationItem(
+    animation: Animation,
+    modifier: Modifier = Modifier,
+    active: Boolean = false,
+    onClickAction: () -> Unit
+) {
     OutlinedButton(
         onClick = onClickAction,
         border = BorderStroke(
@@ -103,7 +108,7 @@ fun AnimationItem(animation: Animation, active: Boolean = false, onClickAction: 
         colors = ButtonDefaults.outlinedButtonColors(
             backgroundColor = if (!active) MaterialTheme.colors.primaryVariant else MaterialTheme.colors.onSecondary
         ),
-        modifier = Modifier
+        modifier = modifier
             .padding(10.dp)
             .aspectRatio(1f)
     ) {

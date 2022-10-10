@@ -19,22 +19,22 @@ const char *password = "Pi1ad,bhia";
 #define EEPROM_SIZE 12
 #define ADDRESS_ACTION 0
 #define ADDRESS_COLOR 2
+#define ADDRESS_BRIGHTNESS 6
 
 void loadColorAndAction() {
   EEPROM.begin(EEPROM_SIZE);
   EEPROM.get(ADDRESS_ACTION, currentAction);
   EEPROM.get(ADDRESS_COLOR, currentColor);
+  EEPROM.get(ADDRESS_BRIGHTNESS, currentBrightness);
   EEPROM.end();
 
   if (currentAction > ANIM_RGB_WHEEL) {
     currentAction = 0;
     currentColor = 0xFFFFFF;
+    currentBrightness = 255;
   }
 #if DEBUG
-  Serial.print("Loaded from EEPROM: action: ");
-  Serial.print(currentAction);
-  Serial.print(" color:");
-  Serial.println(String(currentColor, 16));
+  Serial.printf("Loaded from EEPROM: action: %d color: %x brightness: %d\n", currentAction, currentColor, currentBrightness);
 #endif
 }
 
@@ -42,12 +42,10 @@ void saveColorAndAction() {
   EEPROM.begin(EEPROM_SIZE);
   EEPROM.put(ADDRESS_ACTION, currentAction);
   EEPROM.put(ADDRESS_COLOR, currentColor);
+  EEPROM.put(ADDRESS_BRIGHTNESS, currentBrightness);
   EEPROM.commit();
   EEPROM.end();
 #if DEBUG
-  Serial.print("Stored to EEPROM: action: ");
-  Serial.print(currentAction);
-  Serial.print(" color:");
-  Serial.println(String(currentColor, 16));
+  Serial.printf("Stored to EEPROM: action: %d color: %x brightness: %d\n", currentAction, currentColor, currentBrightness);
 #endif
 }

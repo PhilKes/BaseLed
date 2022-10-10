@@ -30,7 +30,9 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.philkes.baseled.R
 import com.philkes.baseled.service.EspNowAction
+import com.philkes.baseled.service.EspRestClient
 import com.philkes.baseled.ui.MainActivity
+import com.philkes.baseled.ui.State
 import com.philkes.baseled.ui.component.AudioVisualizerComp
 import com.philkes.baseled.ui.component.TextIconButton
 import com.philkes.baseled.ui.showToast
@@ -56,7 +58,11 @@ fun generateTone(freqHz: Double, durationMs: Int): AudioTrack {
 }
 
 @Composable
-fun MusicTab(debug: Boolean, onAction: (action: EspNowAction, rgbHex: String) -> Unit) {
+fun MusicTab(
+    state: MutableState<State>,
+    debug: Boolean,
+    onAction: (action: EspNowAction, rgbHex: String) -> Unit
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -111,7 +117,16 @@ fun MusicTab(debug: Boolean, onAction: (action: EspNowAction, rgbHex: String) ->
             horizontalArrangement = Arrangement.Center,
             modifier = Modifier.fillMaxWidth(1f)
         ) {
-            AudioVisualizerComp(isRecording.value, onAction, debug)
+            AudioVisualizerComp(
+                isRecording.value,
+                {
+                    onAction(
+                        EspNowAction.RGB,
+                        EspRestClient.formatPayload(it, state.value.brightness)
+                    )
+                },
+                debug
+            )
         }
         Spacer(modifier = Modifier.height(10.dp))
         Row(

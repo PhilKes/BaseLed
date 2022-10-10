@@ -4,7 +4,10 @@ package com.philkes.baseled.service
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import com.philkes.baseled.Settings
+import com.philkes.baseled.Util
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.isActive
@@ -35,6 +38,7 @@ class EspRestClient(private val settings: Settings) {
             )
         }
     }
+
     fun setOnPingFailed(onPingFailed: () -> Unit) {
         listener.setOnPingFailed(onPingFailed)
     }
@@ -97,4 +101,10 @@ class EspRestClient(private val settings: Settings) {
             e.printStackTrace()
         }
     }
+
+    companion object {
+        fun formatPayload(color: Color, brightness: Int) =
+            "${Util.argbToRGBHexStr(color.toArgb())}-${"%02x".format(brightness)}"
+    }
+
 }

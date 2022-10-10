@@ -28,7 +28,7 @@ fun CustomColorPicker(
     BoxWithConstraints(modifier) {
         Column(
             Modifier
-                .padding(16.dp)
+                .padding(start = 16.dp, end = 16.dp)
                 .fillMaxHeight()
                 .fillMaxWidth()
         ) {
@@ -47,17 +47,7 @@ fun CustomColorPicker(
                 harmonyMode = harmonyMode
             )
             Spacer(modifier = Modifier.fillMaxHeight(0.1f))
-            BrightnessBar(
-                modifier = Modifier
-                    .padding(top = 16.dp)
-                    .fillMaxWidth()
-                    .weight(0.2f),
-                onValueChange = { value ->
-                    hsvColor.value = hsvColor.value.copy(value = value)
-                    updatedOnColorChanged(hsvColor.value)
-                },
-                currentColor = hsvColor.value
-            )
+
         }
     }
 }
