@@ -1,7 +1,6 @@
 package com.philkes.baseled.ui.tab
 
-import android.Manifest
-import android.content.pm.PackageManager
+import android.content.Intent
 import android.media.AudioFormat
 import android.media.AudioManager
 import android.media.AudioTrack
@@ -21,21 +20,19 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
 import com.philkes.baseled.R
 import com.philkes.baseled.service.EspNowAction
-import com.philkes.baseled.service.EspRestClient
 import com.philkes.baseled.ui.MainActivity
 import com.philkes.baseled.ui.State
 import com.philkes.baseled.ui.component.AudioVisualizerComp
 import com.philkes.baseled.ui.component.TextIconButton
-import com.philkes.baseled.ui.showToast
+import com.philkes.baseled.ui.tab.RecordMusicService.Companion.ACTION_STOP
 import kotlin.math.sin
 
 fun generateTone(freqHz: Double, durationMs: Int): AudioTrack {
@@ -83,6 +80,9 @@ fun MusicTab(
         val tone: MutableState<AudioTrack?> = remember {
             mutableStateOf(null)
         }
+        val rgb: MutableState<androidx.compose.ui.graphics.Color> =
+            remember { mutableStateOf(Color(0, 0, 0)) }
+
         Row(
             horizontalArrangement = Arrangement.Center,
             modifier = Modifier.fillMaxWidth(1f)
@@ -118,13 +118,7 @@ fun MusicTab(
             modifier = Modifier.fillMaxWidth(1f)
         ) {
             AudioVisualizerComp(
-                isRecording.value,
-                {
-                    onAction(
-                        EspNowAction.RGB,
-                        EspRestClient.formatPayload(it, state.value.brightness)
-                    )
-                },
+                rgb.value,
                 debug
             )
         }
@@ -141,39 +135,26 @@ fun MusicTab(
                 ),
                 onClick = {
                     if (!isRecording.value) {
-                        checkAudioRecordPermission(context) {
+                        val intentStart = Intent(context, RecordMusicService::class.java)
+                        // TODO pass onAction
+/*                        onAction(
+                            EspNowAction.RGB,
+                            EspRestClient.formatPayload(it, state.value.brightness)
+                        )*/
+                        context.startForegroundService(intentStart)
+                        isRecording.value = true
+                        /*checkAudioRecordPermission(context) {
                             isRecording.value = true
-                        }
+                        }*/
                     } else {
+                        val intentStop = Intent(context, RecordMusicService::class.java)
+                        intentStop.action = ACTION_STOP
+                        context.startForegroundService(intentStop)
                         isRecording.value = false
+//                        isRecording.value = false
                     }
                 }
             )
         }
-    }
-}
-
-fun checkAudioRecordPermission(context: MainActivity, block: () -> Unit) {
-    if (ContextCompat.checkSelfPermission(
-            context,
-            Manifest.permission.RECORD_AUDIO
-        ) != PackageManager.PERMISSION_GRANTED
-    ) {
-
-        if (ActivityCompat.shouldShowRequestPermissionRationale(
-                context,
-                Manifest.permission.RECORD_AUDIO
-            )
-        ) {
-            context.showToast(context.getString(R.string.txt_audio_permission_hint))
-        } else {
-            ActivityCompat.requestPermissions(
-                context,
-                arrayOf(Manifest.permission.RECORD_AUDIO),
-                1
-            )
-        }
-    } else {
-        block()
     }
 }
