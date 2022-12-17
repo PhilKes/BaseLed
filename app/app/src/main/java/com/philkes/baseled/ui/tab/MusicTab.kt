@@ -1,6 +1,8 @@
 package com.philkes.baseled.ui.tab
 
+import android.Manifest
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.media.AudioFormat
 import android.media.AudioManager
 import android.media.AudioTrack
@@ -26,12 +28,15 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import com.philkes.baseled.R
 import com.philkes.baseled.service.EspNowAction
 import com.philkes.baseled.ui.MainActivity
 import com.philkes.baseled.ui.State
 import com.philkes.baseled.ui.component.AudioVisualizerComp
 import com.philkes.baseled.ui.component.TextIconButton
+import com.philkes.baseled.ui.showToast
 import com.philkes.baseled.ui.tab.RecordMusicService.Companion.ACTION_STOP
 import kotlin.math.sin
 
@@ -52,6 +57,30 @@ fun generateTone(freqHz: Double, durationMs: Int): AudioTrack {
     )
     track.write(samples, 0, count)
     return track
+}
+fun checkAudioRecordPermission(context: MainActivity, block: () -> Unit) {
+    if (ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.RECORD_AUDIO
+        ) != PackageManager.PERMISSION_GRANTED
+    ) {
+
+        if (ActivityCompat.shouldShowRequestPermissionRationale(
+                context,
+                Manifest.permission.RECORD_AUDIO
+            )
+        ) {
+            context.showToast(context.getString(R.string.txt_audio_permission_hint))
+        } else {
+            ActivityCompat.requestPermissions(
+                context,
+                arrayOf(Manifest.permission.RECORD_AUDIO),
+                1
+            )
+        }
+    } else {
+        block()
+    }
 }
 
 @Composable
@@ -135,17 +164,19 @@ fun MusicTab(
                 ),
                 onClick = {
                     if (!isRecording.value) {
-                        val intentStart = Intent(context, RecordMusicService::class.java)
-                        // TODO pass onAction
+                        checkAudioRecordPermission(context){
+                            val intentStart = Intent(context, RecordMusicService::class.java)
+                            // TODO pass onAction
 /*                        onAction(
                             EspNowAction.RGB,
                             EspRestClient.formatPayload(it, state.value.brightness)
                         )*/
-                        context.startForegroundService(intentStart)
-                        isRecording.value = true
-                        /*checkAudioRecordPermission(context) {
+                            context.startForegroundService(intentStart)
                             isRecording.value = true
-                        }*/
+                            /*checkAudioRecordPermission(context) {
+                                isRecording.value = true
+                            }*/
+                        }
                     } else {
                         val intentStop = Intent(context, RecordMusicService::class.java)
                         intentStop.action = ACTION_STOP
@@ -156,5 +187,8 @@ fun MusicTab(
                 }
             )
         }
+
     }
+
+
 }

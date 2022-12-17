@@ -89,7 +89,6 @@ class MainActivity : ComponentActivity() {
         val tabs =
             listOf(
                 TabItem.Rgb(state, ::onSendAction),
-                TabItem.Animation(state, ::onSendAction),
                 TabItem.Music(state, ::onSendAction, settings.debug)
             )
         pagerState = rememberPagerState(

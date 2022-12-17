@@ -1,10 +1,8 @@
 package com.philkes.baseled.ui.tab
 
-import android.Manifest
 import android.app.*
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.media.audiofx.Visualizer
 import android.os.Build
 import android.os.IBinder
@@ -13,20 +11,28 @@ import androidx.annotation.RequiresApi
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.Color
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
 import com.philkes.baseled.R
-import com.philkes.baseled.ui.MainActivity
+import com.philkes.baseled.service.EspNowAction
+import com.philkes.baseled.service.EspRestClient
 import com.philkes.baseled.ui.component.FFT_NEEDED_PORTION
 import com.philkes.baseled.ui.component.FFT_OFFSET
 import com.philkes.baseled.ui.component.FFT_STEP
-import com.philkes.baseled.ui.showToast
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 import kotlin.math.log10
 import kotlin.math.min
 
-
 // Source: https://betterprogramming.pub/what-is-foreground-service-in-android-3487d9719ab6
+@AndroidEntryPoint
 class RecordMusicService() : Service() {
+
+    @Inject
+    lateinit var espRestClient: EspRestClient
+
     override fun onBind(p0: Intent?): IBinder? {
         return null
     }
@@ -39,6 +45,9 @@ class RecordMusicService() : Service() {
 
     val rgb: MutableState<FloatArray> = mutableStateOf(floatArrayOf(0f, 0f, 0f))
     val magnitudes: MutableState<FloatArray> = mutableStateOf(FloatArray(frequencyBands))
+
+    private val job = SupervisorJob()
+    private val scope = CoroutineScope(Dispatchers.IO + job)
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (intent?.action != null && intent.action.equals(
@@ -53,7 +62,6 @@ class RecordMusicService() : Service() {
                 }
             stopSelf()
         } else {
-
             val channelId =
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                     createNotificationChannel("baseled_service", "BaseLed Service")
@@ -64,7 +72,14 @@ class RecordMusicService() : Service() {
                 }
             visualizer.apply {
                 if (value == null) {
-                    value = createAudioVisualizer(rgb, magnitudes, { })
+                    value = createAudioVisualizer(rgb, magnitudes) {
+                        val col = rgb.value.let {
+                            Color(it[0], it[1], it[2])
+                        }
+                        scope.launch {
+                            onSendAction(EspNowAction.RGB, EspRestClient.formatPayload(col, 255))
+                        }
+                    }
 //                TODO        value = createAudioVisualizer(rgb, magnitudes, onAction)
                 }
                 if (!value!!.enabled) {
@@ -92,6 +107,7 @@ class RecordMusicService() : Service() {
 // Notification ID cannot be 0.
             val ONGOING_NOTIFICATION_ID = 100
             startForeground(ONGOING_NOTIFICATION_ID, notification)
+
         }
         return START_STICKY
     }
@@ -110,35 +126,10 @@ class RecordMusicService() : Service() {
     }
 
 
-    private fun checkAudioRecordPermission(context: MainActivity, block: () -> Unit) {
-        if (ContextCompat.checkSelfPermission(
-                context,
-                Manifest.permission.RECORD_AUDIO
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-
-            if (ActivityCompat.shouldShowRequestPermissionRationale(
-                    context,
-                    Manifest.permission.RECORD_AUDIO
-                )
-            ) {
-                context.showToast(context.getString(R.string.txt_audio_permission_hint))
-            } else {
-                ActivityCompat.requestPermissions(
-                    context,
-                    arrayOf(Manifest.permission.RECORD_AUDIO),
-                    1
-                )
-            }
-        } else {
-            block()
-        }
-    }
-
     fun createAudioVisualizer(
         rgb: MutableState<FloatArray>,
         magnitudes: MutableState<FloatArray>,
-        onAction: (color: androidx.compose.ui.graphics.Color) -> Unit
+        onAction: (color: Color) -> Unit
     ): Visualizer {
         val smoothingFactor = 0.2f
         val maxMagnitude = calculateMagnitude(128f, 128f)
@@ -251,6 +242,10 @@ class RecordMusicService() : Service() {
     private fun calculateMagnitude(r: Float, i: Float) =
         if (i == 0f && r == 0f) 0f else 10 * log10(r * r + i * i)
 
+    private suspend fun onSendAction(action: EspNowAction, payload: String) {
+        espRestClient.sendAction(action, payload)
+
+    }
 
     companion object {
         const val ACTION_STOP = "RECORD_MUSIC_STOP"

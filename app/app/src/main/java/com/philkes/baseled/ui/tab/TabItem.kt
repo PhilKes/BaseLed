@@ -24,16 +24,6 @@ sealed class TabItem(
             { RgbTab(state, onAction) }, state, onAction
         )
 
-    class Animation(
-        state: MutableState<State>,
-        onAction: (action: EspNowAction, rgbHex: String) -> Unit
-    ) :
-        TabItem(
-            null,
-            "Animation",
-            { AnimationTab() }, state, onAction
-        )
-
     class Music(
         state: MutableState<State>,
         onAction: (action: EspNowAction, rgbHex: String) -> Unit,
