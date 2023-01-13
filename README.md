@@ -2,8 +2,6 @@
 ESP8266 driven RGB LED for Bottle Lamps controlled over WiFi
 
 # Hardware
-
----
 <img style="border: 1px solid black;" src="./doc/hardware.jpg" width="200">
 
 * WeMos D1 Mini (ESP8266)
@@ -13,9 +11,7 @@ ESP8266 driven RGB LED for Bottle Lamps controlled over WiFi
 * Slide Switch
 
 # Code
-
----
-## Arduino Sketch
+## Sketch
 * _Adafruit NeoPixel_ Library to control **WS2812b** LED
 * Uses **EEPROM** to permanently store Color set by User
 * Exposing **WebSocket** to control Color/Animations
@@ -29,8 +25,6 @@ ESP8266 driven RGB LED for Bottle Lamps controlled over WiFi
 * Allows to change the displayed **Color** and start **Animations** over WebSocket connection
 
 # 3D printed Case
-
----
 <img style="border: 1px solid black;" src="./doc/case.jpg" width="400">
 
 The case for the a BaseLed node can be printed in **2 parts**:
@@ -38,7 +32,5 @@ The case for the a BaseLed node can be printed in **2 parts**:
 * Case Cover (/case/BaseLed_Case_Cover.stl)
 
 # TODO
-
----
 * Finish Music Mode to visualize Audio properly on a single node
 * Introduce synchronized Music Node to split different frequency band visualisations over multiple nodes
