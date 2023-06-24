@@ -1,6 +1,8 @@
 # BaseLed <img style="vertical-align:text-top" src="./doc/icon.png" height="30">
 ESP8266 driven RGB LED for Bottle Lamps controlled over WiFi
 
+<img style="border: 1px solid black;" src="./doc/led.jpg" width="250">
+
 # Hardware
 <img style="border: 1px solid black;" src="./doc/hardware.jpg" width="200">
 
